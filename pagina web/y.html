@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Comunidad Left 4 Dead 2 - Wowcom</title>
+  <link rel="stylesheet" href="q.css" />
+</head>
+<body>
+ <header>
+    
+
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <nav>
+      <ul class="menu">
+        <li><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="#">Left 4 Dead 2</a></li>
+        <li><a href="#">Call of Duty</a></li>
+        <li><a href="#">Fortnite</a></li>
+        <li><a href="#">Valorant</a></li>
+        <li><a href="#">Gears of War</a></li>
+        <li><a href="#">Super Mario Wonder</a></li>
+        <li><a href="#">Kirby’s Return</a></li>
+        <li><a href="#">CS2</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="overlay" role="main">
+    <!-- Chat global -->
+    <section id="chat-global-section" aria-label="Chat Global Left 4 Dead 2">
+      <h1>Chat Global - Left 4 Dead 2</h1>
+      <div id="chat-box-global" aria-live="polite" aria-relevant="additions" tabindex="0">
+        <p><strong>Admin:</strong> ¡Bienvenidos al chat global de Left 4 Dead 2!</p>
+      </div>
+      <form class="chat-form-global" id="form-global">
+        <input type="text" id="name-global" placeholder="Tu nombre" autocomplete="off" required aria-label="Nombre" />
+        <input type="text" id="message-global" placeholder="Escribe un mensaje..." autocomplete="off" required aria-label="Mensaje" />
+        <button type="submit" aria-label="Enviar mensaje">Enviar</button>
+      </form>
+    </section>
+
+    <!-- Sidebar social -->
+    <aside id="sidebar" aria-label="Secciones sociales de la comunidad">
+
+      <!-- Usuarios online -->
+      <div class="active-users-container">
+  <h3>Usuarios activos</h3>
+  <ul id="active-users"></ul>
+</div>
+      <!-- Muro de publicaciones -->
+      <section id="muro" aria-label="Muro de publicaciones">
+        <h2>Muro de la comunidad</h2>
+        <div id="muro-posts" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
+        <form id="muro-form" aria-label="Agregar publicación al muro">
+          <input type="text" id="muro-name" placeholder="Tu nombre" autocomplete="off" required aria-label="Nombre" />
+          <input type="text" id="muro-message" placeholder="Escribe algo..." autocomplete="off" required aria-label="Mensaje" />
+          <button type="submit" aria-label="Publicar en el muro">Publicar</button>
+        </form>
+      </section>
+
+      <!-- Eventos / Noticias -->
+      <section id="eventos" aria-label="Eventos y noticias recientes">
+        <h2>Noticias & Eventos</h2>
+        <ul>
+          <li>📅 Torneo mensual de Left 4 Dead 2 - 20 de Junio</li>
+          <li>🎉 Actualización del servidor - Nuevos mapas</li>
+          <li>🔔 Mantenimiento programado - 12 de Junio</li>
+        </ul>
+      </section>
+
+      <!-- Compartir imágenes -->
+      <section id="imagenes-compartidas" aria-label="Zona para compartir imágenes">
+        <h2>Galería de imágenes</h2>
+        <div id="image-gallery" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
+        <form id="image-upload-form" aria-label="Subir imagen">
+          <input type="file" id="image-upload" accept="image/*" aria-label="Seleccionar imagen para subir" />
+          <button type="button" id="upload-button" aria-label="Subir imagen">Subir</button>
+        </form>
+      </section>
+
+    </aside>
+  </main>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+
+  <script>
+    // Toggle menú móvil
+    const menuToggle = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('nav');
+    menuToggle.addEventListener('click', () => {
+      nav.classList.toggle('active');
+    });
+
+    // Tabs chat
+    const tabs = document.querySelectorAll('.tab-button');
+    const chatRooms = document.querySelectorAll('.chat-room');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+
+        const target = tab.getAttribute('data-chat');
+        chatRooms.forEach(room => {
+          if(room.id === `chat-${target}`) {
+            room.classList.add('active');
+            room.focus();
+          } else {
+            room.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    // Envío de mensajes para cada chat (simulación)
+    function setupChatForm(formId, chatBoxId, nameInputId, messageInputId) {
+      const form = document.getElementById(formId);
+      const chatBox = document.getElementById(chatBoxId);
+      const nameInput = document.getElementById(nameInputId);
+      const messageInput = document.getElementById(messageInputId);
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = nameInput.value.trim();
+        const message = messageInput.value.trim();
+        if (!name || !message) return;
+
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${name}:</strong> ${message}`;
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        messageInput.value = '';
+        messageInput.focus();
+      });
+    }
+
+    setupChatForm('form-global', 'chat-box-global', 'name-global', 'message-global');
+    setupChatForm('form-juegos', 'chat-box-juegos', 'name-juegos', 'message-juegos');
+    setupChatForm('form-arte', 'chat-box-arte', 'name-arte', 'message-arte');
+    setupChatForm('form-musica', 'chat-box-musica', 'name-musica', 'message-musica');
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  databaseURL: "TU_DATABASE_URL",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_STORAGE_BUCKET",
+  messagingSenderId: "TU_MESSAGING_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+// Registrar usuario
+async function register(email, password) {
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    console.log('Usuario registrado:', userCredential.user.email);
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+// Login usuario
+async function login(email, password) {
+  try {
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    console.log('Usuario logueado:', userCredential.user.email);
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+// Logout
+function logout() {
+  auth.signOut();
+}
+const userStatusDatabaseRef = db.ref('/status/' + auth.currentUser.uid);
+
+// Detectar conexión
+const isOfflineForDatabase = {
+  state: 'offline',
+  last_changed: firebase.database.ServerValue.TIMESTAMP,
+};
+
+const isOnlineForDatabase = {
+  state: 'online',
+  last_changed: firebase.database.ServerValue.TIMESTAMP,
+};
+
+firebase.database().ref('.info/connected').on('value', function(snapshot) {
+  if (snapshot.val() === false) {
+    return;
+  }
+  userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(function() {
+    userStatusDatabaseRef.set(isOnlineForDatabase);
+  });
+});
+const onlineUsersRef = db.ref('/status');
+onlineUsersRef.on('value', (snapshot) => {
+  const users = snapshot.val();
+  // Actualizar lista en UI con usuarios que tengan state === 'online'
+});
+const onlineUsersRef = db.ref('/status');
+
+onlineUsersRef.on('value', snapshot => {
+  const users = snapshot.val();
+  const activeUsersList = document.getElementById('active-users');
+  activeUsersList.innerHTML = ''; // limpiar lista
+
+  for (const uid in users) {
+    if (users[uid].state === 'online') {
+      const li = document.createElement('li');
+      li.textContent = users[uid].name;
+      activeUsersList.appendChild(li);
+    }
+  }
+});
+auth.onAuthStateChanged(user => {
+  if (user) {
+    const userStatusDatabaseRef = db.ref('/status/' + user.uid);
+
+    const isOfflineForDatabase = {
+      state: 'offline',
+      last_changed: firebase.database.ServerValue.TIMESTAMP,
+      name: user.displayName || 'Sin nombre'
+    };
+
+    const isOnlineForDatabase = {
+      state: 'online',
+      last_changed: firebase.database.ServerValue.TIMESTAMP,
+      name: user.displayName || 'Sin nombre'
+    };
+
+    firebase.database().ref('.info/connected').on('value', snapshot => {
+      if (snapshot.val() === false) {
+        return;
+      }
+
+      userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+        userStatusDatabaseRef.set(isOnlineForDatabase);
+      });
+    });
+  }
+});
+auth.createUserWithEmailAndPassword(email, password)
+  .then(userCredential => {
+    return userCredential.user.updateProfile({
+      displayName: nombreUsuario // aquí el nombre que capture el formulario
+    });
+  })
+  .catch(error => {
+    console.error(error.message);
+  });
+
+  </script>
+</body>
+</html>
